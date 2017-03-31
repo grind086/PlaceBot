@@ -1,6 +1,15 @@
 (function() {
     'use strict';
     
+    // ==UserScript==
+    // @name        PlaceBot
+    // @version     0.1
+    // @namespace   https://github.com/grind086/PlaceBot
+    // @description A bot that automates drawing on reddit.com/r/place
+    // @include     http://www.reddit.com/r/place
+    // @include     https://www.reddit.com/r/place
+    // ==/UserScript==
+    
     /* global r */
     
     var place = r.place;
