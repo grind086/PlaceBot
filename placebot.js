@@ -418,6 +418,4 @@
             return 0;
         }
     };
-    
-    unsafeWindow.placeBot = new PlaceBot();
 })();
