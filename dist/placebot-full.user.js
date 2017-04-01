@@ -198,7 +198,7 @@
         var tiledata = Object.assign(this._tilesObject(), imported.data);
         
         this.tiles = tiledata.tiles || [];
-        this.setTileFunction(tiledata.placeMode, tiledata.fn);
+        this.setTileFunction(tiledata.mode, tiledata.fn);
     };
     
     /**
