@@ -132,7 +132,7 @@
             return false;
         }
         
-        this.toPlace = imported.data;
+        this.toPlace = imported.data || [];
     };
     
     /**
