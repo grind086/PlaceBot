@@ -1,3 +1,12 @@
+// ==UserScript==
+// @name        PlaceBot
+// @version     0.0.5
+// @namespace   https://github.com/grind086/PlaceBot
+// @description A bot that automates drawing on reddit.com/r/place
+// @include     http://www.reddit.com/r/place/
+// @include     https://www.reddit.com/r/place/
+// ==/UserScript==
+
 (function() {
     'use strict';
     
@@ -271,7 +280,7 @@
      * @property {String} version - Attach the placebot version
      * @static
      */
-    PlaceBot.version = '$$version';
+    PlaceBot.version = '0.0.5';
     
     /**
      * @property {Object} selector - Collection of tile selection functions

@@ -15,19 +15,28 @@ gulp.task('clean', function() {
 
 gulp.task('default', ['clean'], function() {
     var importScript = fs.readFileSync('./import.js', 'utf8');
+    var botScript = fs.readFileSync('./placebot.js', 'utf8');
     
     return merge(
-            gulp.src('./import_bm.js')
-                .pipe(rename('bookmarklet.js'))
+            merge (
+                    gulp.src('./import_bm.js')
+                        .pipe(rename('bookmarklet.js'))
+                    ,
+                    gulp.src('./import_us.js')
+                        .pipe(rename('placebot.user.js'))
+                )
+                .pipe(replace('$$import', importScript))
             ,
             gulp.src('./import_us.js')
-                .pipe(rename('placebot.user.js'))
+                .pipe(replace('(function() {\n', ''))
+                .pipe(replace('\n})();', ''))
+                .pipe(rename('placebot-full.user.js'))
+                .pipe(replace('$$import', botScript))
             ,
             gulp.src('./placebot.js')
                 .pipe(uglify())
                 .pipe(rename({ suffix: '.min' }))
         )
-        .pipe(replace('$$import', importScript))
         .pipe(replace('$$version', pkg.version))
         .pipe(replace('$$description', pkg.description))
         .pipe(gulp.dest('./dist'));
