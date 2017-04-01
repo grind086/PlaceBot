@@ -24,14 +24,26 @@
      */
     var PlaceBot = function() {
         /**
-         * @property {Array} toPlace - An array of tiles to place stored as [x, y, color]
+         * @property {Number} placeMode - Either PlaceBot.PlaceArray or PlaceBot.PlaceFunction
          */
-        this.toPlace = [];
+        this.placeMode = PlaceBot.placeMode.ARRAY;
+        
+        /**
+         * @property {Array} tiles - An array of tiles stored as [x, y, color]. 
+         *   Used as a queue for placeMode.ARRAY, and as data storage for 
+         *   placeMode.FUNCTION.
+         */
+        this.tiles = [];
     
         /**
          * @property {Function} tileSelector - A function that returns the index of the next tile to draw
          */
         this.tileSelector = PlaceBot.selector.TopDown;
+        
+        /**
+         * @property {Function} tileGenerator - Returns the next tile to draw
+         */
+        this.tileGenerator = undefined;
         
         /**
          * @property {Timer} drawTimer - The id of the current draw timer
@@ -108,13 +120,55 @@
     };
     
     /**
+     * Takes either string or function, and returns function
+     * 
+     * @method _importFunction
+     */
+    PlaceBot.prototype._importFunction = function(data) {
+        if ('string' === typeof data) {
+            try {
+                data = eval(data);
+            } catch(e) {
+                return {
+                    success: false,
+                    error: e.message
+                };
+            }
+        }
+        
+        if ('function' !== typeof data) {
+            return {
+                success: false,
+                error: 'Invalid data type'
+            };
+        }
+        
+        return {
+            success: true,
+            data: data
+        };
+    };
+    
+    /**
+     * Collects saveable tile info into one object
+     * 
+     * @method _tilesObject
+     */
+    PlaceBot.prototype._tilesObject = function() {
+        return {
+            mode: this.placeMode,
+            tiles: this.tiles,
+            fn: this.tileSelector.name
+        };
+    };
+    
+    /**
      * Collects saveable settings into one object
      * 
      * @method _settingsObject
      */
     PlaceBot.prototype._settingsObject = function() {
         return {
-            tileSelector: this.tileSelector.name,
             minTimer: this.minTimer
         };
     };
@@ -125,7 +179,7 @@
      * @method exportTiles
      */
     PlaceBot.prototype.exportTiles = function() {
-        return JSON.stringify(this.toPlace);
+        return JSON.stringify(this._tilesObject());
     };
     
     /**
@@ -141,7 +195,10 @@
             return false;
         }
         
-        this.toPlace = imported.data || [];
+        var tiledata = Object.assign(this._tilesObject(), imported.data);
+        
+        this.tiles = tiledata.tiles || [];
+        this.setTileFunction(tiledata.placeMode, tiledata.fn);
     };
     
     /**
@@ -166,7 +223,7 @@
             return false;
         }
         
-        var settings = Object.assign(this._settingsObject(), settings);
+        var settings = Object.assign(this._settingsObject(), imported.data);
         
         this.tileSelector = PlaceBot.selector[settings.tileSelector] || PlaceBot.selector.TopDown;
         this.minTimer = settings.minTimer;
@@ -180,7 +237,7 @@
     PlaceBot.prototype.exportBot = function() {
         return JSON.stringify({
             settings: this._settingsObject(),
-            tiles: this.toPlace
+            tiles: this.tiles
         });
     };
     
@@ -222,6 +279,36 @@
     };
     
     /**
+     * 
+     */
+    PlaceBot.prototype.setTileFunction = function(mode, fn) {
+        switch (mode) {
+            case PlaceBot.placeMode.ARRAY:
+                this.placeMode = PlaceBot.placeMode.ARRAY;
+                this.tileSelector = PlaceBot.selector[fn] || PlaceBot.selector.TopDown;
+                this.tileGenerator = undefined;
+                break;
+                
+            case PlaceBot.placeMode.FUNCTION:
+                this.placeMode = PlaceBot.placeMode.FUNCTION;
+                this.tileSelector = undefined;
+                
+                var imported = this._importFunction(fn);
+                
+                if (imported.success) {
+                    this.tileGenerator = imported.data;
+                    break;
+                }
+                
+                console.log('Function import failed: %s', imported.error);
+            
+            default:
+                this.tiles = [];
+                this.setTileFunction(PlaceBot.placeMode.ARRAY, 'TopDown');
+        }
+    };
+    
+    /**
      * Sets the timer for the next available draw
      * 
      * @method _setTimer
@@ -229,7 +316,7 @@
     PlaceBot.prototype._setTimer = function() {
         clearTimeout(this.drawTimer); // Ensure we only have one timer running
         
-        var time = Math.max(this.minTimer, this.cooldownRemaining);
+        var time = Math.round(Math.max(this.minTimer, this.cooldownRemaining));
         this.drawTimer = setTimeout(this.drawNext.bind(this), time);
         
         console.log('Scheduled draw in %sms', time);
@@ -243,9 +330,9 @@
      * @method drawNext
      */
     PlaceBot.prototype.drawNext = function() {
-        if (this.canDraw && this.toPlace.length) {
-            var tileIndex = this.tileSelector(this.toPlace);
-            var tile = this.toPlace.splice(tileIndex, 1)[0];
+        if (this.canDraw && this.tiles.length) {
+            var tileIndex = this.tileSelector(this.tiles);
+            var tile = this.tiles.splice(tileIndex, 1)[0];
             
             api.getPixelInfo(tile[0], tile[1]).then(function(data) {
                 if (data.color !== tile[2]) {
@@ -281,6 +368,15 @@
      * @static
      */
     PlaceBot.version = '0.0.5';
+    
+    /**
+     * @property {Enum} placeMode
+     * @static
+     */
+    PlaceBot.placeMode = { 
+        ARRAY    : 0,
+        FUNCTION : 1
+    };
     
     /**
      * @property {Object} selector - Collection of tile selection functions
