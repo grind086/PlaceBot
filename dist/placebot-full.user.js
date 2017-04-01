@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        PlaceBot
+// @name        PlaceBot-full
 // @version     0.0.5
 // @namespace   https://github.com/grind086/PlaceBot
 // @description A bot that automates drawing on reddit.com/r/place
@@ -39,6 +39,11 @@
          * @property {Function} tileSelector - A function that returns the index of the next tile to draw
          */
         this.tileSelector = PlaceBot.selector.TopDown;
+        
+        /**
+         * @property {Function} _tileGeneratorFactory - The function that actually returns a tile generator
+         */
+        this._tileGeneratorFactory = undefined;
         
         /**
          * @property {Function} tileGenerator - Returns the next tile to draw
@@ -83,7 +88,7 @@
          * @property {Number} nextDrawTime - The time that the next draw is allowed
          */
         nextDrawTime: {
-            get: function() { return r.place.cooldownEndTime; }
+            get: function() { return place.cooldownEndTime; }
         },
         
         /**
@@ -127,7 +132,7 @@
     PlaceBot.prototype._importFunction = function(data) {
         if ('string' === typeof data) {
             try {
-                data = eval(data);
+                data = eval('(' + data + ')');
             } catch(e) {
                 return {
                     success: false,
@@ -155,11 +160,19 @@
      * @method _tilesObject
      */
     PlaceBot.prototype._tilesObject = function() {
-        return {
+        var obj = {
             mode: this.placeMode,
-            tiles: this.tiles,
-            fn: this.tileSelector.name
+            tiles: this.tiles
         };
+        
+        if (this.placeMode === PlaceBot.placeMode.ARRAY) {
+            obj.fn = this.tileSelector.name;
+        }
+        else if (this.placeMode === PlaceBot.placeMode.ARRAY) {
+            obj.fn = this._tileGeneratorFactory.toString();
+        }
+        
+        return;
     };
     
     /**
@@ -282,25 +295,43 @@
      * 
      */
     PlaceBot.prototype.setTileFunction = function(mode, fn) {
+        var imported;
+        
         switch (mode) {
             case PlaceBot.placeMode.ARRAY:
                 this.placeMode = PlaceBot.placeMode.ARRAY;
-                this.tileSelector = PlaceBot.selector[fn] || PlaceBot.selector.TopDown;
                 this.tileGenerator = undefined;
+                
+                if ('string' === typeof fn && PlaceBot.selector.hasOwnProperty(fn)) {
+                    this.tileSelector = PlaceBot.selector[fn];
+                }
+                else {
+                    imported = this._importFunction(fn);
+                    
+                    if (imported.success) {
+                        this.tileSelector = imported.data;
+                    }
+                    else {
+                        this.tileSelector = PlaceBot.selector.TopDown;
+                    }
+                }
+                
                 break;
                 
             case PlaceBot.placeMode.FUNCTION:
                 this.placeMode = PlaceBot.placeMode.FUNCTION;
                 this.tileSelector = undefined;
                 
-                var imported = this._importFunction(fn);
+                imported = this._importFunction(fn);
                 
                 if (imported.success) {
-                    this.tileGenerator = imported.data;
+                    this._tileGeneratorFactory = imported.data;
+                    this.tileGenerator = imported.data(this);
                     break;
                 }
                 
                 console.log('Function import failed: %s', imported.error);
+                // fall through to default
             
             default:
                 this.tiles = [];
@@ -331,16 +362,29 @@
      */
     PlaceBot.prototype.drawNext = function() {
         if (this.canDraw && this.tiles.length) {
-            var tileIndex = this.tileSelector(this.tiles);
-            var tile = this.tiles.splice(tileIndex, 1)[0];
+            var tile;
             
-            api.getPixelInfo(tile[0], tile[1]).then(function(data) {
-                if (data.color !== tile[2]) {
-                    this.drawTile.apply(this, tile);
+            if (this.placeMode === PlaceBot.placeMode.ARRAY) {
+                if (this.tiles.length) {
+                    var tileIndex = this.tileSelector(this.tiles);
+                    tile = this.tiles.splice(tileIndex, 1)[0];
                 }
+            }
+            else if (this.placeMode === PlaceBot.placeMode.FUNCTION) {
+                tile = this.tileGenerator(this);
+            }
+            
+            if (tile) {
+                api.getPixelInfo(tile[0], tile[1]).then(function(data) {
+                    if (data.color !== tile[2]) {
+                        this.drawTile.apply(this, tile);
+                    }
+                    
+                    this._setTimer();
+                }.bind(this));
                 
-                this._setTimer();
-            }.bind(this));
+                this.save();
+            }
         }
         
         this._setTimer();

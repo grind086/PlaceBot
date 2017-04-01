@@ -28,9 +28,10 @@ gulp.task('default', ['clean'], function() {
                 .pipe(replace('$$import', importScript))
             ,
             gulp.src('./import_us.js')
+                .pipe(rename('placebot-full.user.js'))
+                .pipe(replace(/(\/\/ \@name[^\n]+)/, '$1-full'))
                 .pipe(replace('(function() {\n', ''))
                 .pipe(replace('\n})();', ''))
-                .pipe(rename('placebot-full.user.js'))
                 .pipe(replace('$$import', botScript))
             ,
             gulp.src('./placebot.js')
