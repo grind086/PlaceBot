@@ -326,5 +326,5 @@
         }
     };
     
-    new PlaceBot();
+    window.placeBot = new PlaceBot();
 })();

@@ -1,6 +1,6 @@
 {
   "name": "placebot",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A bot that automates drawing on reddit.com/r/place",
   "repository": {
     "type": "git",
