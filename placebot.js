@@ -463,7 +463,8 @@
         }
     };
     
-    new PlaceBot();
+    exports.PlaceBot = PlaceBot;
+    exports.placeBot = new PlaceBot();
 })(
     typeof unsafeWindow !== 'undefined' ? unsafeWindow :
     typeof window       !== 'undefined' ? window       :
