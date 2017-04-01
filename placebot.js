@@ -418,4 +418,6 @@
             return 0;
         }
     };
+    
+    new PlaceBot();
 })();
