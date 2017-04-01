@@ -428,5 +428,5 @@
         }
     };
     
-    window.placeBot = new PlaceBot();
+    unsafeWindow.placeBot = new PlaceBot();
 })();
