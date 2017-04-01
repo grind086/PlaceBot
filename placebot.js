@@ -157,9 +157,7 @@
             return false;
         }
         
-        var settings = imported.data;
-        
-        Object.assign(this._settingsObject(), settings);
+        var settings = Object.assign(this._settingsObject(), settings);
         
         this.tileSelector = PlaceBot.selector[settings.tileSelector] || PlaceBot.selector.TopDown;
         this.minTimer = settings.minTimer;
