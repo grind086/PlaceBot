@@ -172,7 +172,7 @@
             obj.fn = this._tileGeneratorFactory.toString();
         }
         
-        return;
+        return obj;
     };
     
     /**
