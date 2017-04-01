@@ -14,14 +14,12 @@
   "homepage": "https://github.com/grind086/PlaceBot#readme",
   "devDependencies": {
     "gulp": "^3.9.1",
-    "gulp-clone": "^1.0.0",
+    "gulp-clean": "^0.3.2",
     "gulp-merge": "^0.1.1",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
     "gulp-uglify": "^2.1.2"
   },
   "dependencies": {
-    "gulp-clean": "^0.3.2",
-    "gulp-concat": "^2.6.1"
   }
 }

@@ -8,8 +8,8 @@ The recommended way to use the bot is via a userscript. Alternatively, you can
 just drag the bookmarklet link below into your bookmarks, and click when you want
 to run the bot.
 
-* [Userscript](https://raw.githubusercontent.com/grind086/PlaceBot/master/placebot.user.js)
-* <a href="javascript:(function() {var a=document.createElement('script');a.setAttribute('type','text/javascript'),a.setAttribute('src','https://raw.githubusercontent.com/grind086/PlaceBot/master/placebot.user.js'),document.head.appendChild(a)})();">Bookmarklet</a>
+* [Userscript](https://github.com/grind086/PlaceBot/blob/master/dist/placebot.user.js)
+* <a href="$$bookmarklet">Bookmarklet</a>
 
 ## Features
 

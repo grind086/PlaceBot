@@ -3,7 +3,6 @@
     
     /* global r, localStorage */
     
-    var version = '$$version';
     var place = r.place;
     
     /**
@@ -40,7 +39,7 @@
         
         console.log([
             '------------',
-          , 'PlaceBot ' + version
+          , 'PlaceBot ' + PlaceBot.version
           , '------------'
         ].join('\n'));
     };
@@ -248,6 +247,12 @@
             console.log('Drawing %s at (%s, %s)', place.palette[color], x, y);
         }
     };
+    
+    /**
+     * @property {String} version - Attach the placebot version
+     * @static
+     */
+    PlaceBot.version = '$$version';
     
     /**
      * @property {Object} selector - Collection of tile selection functions
