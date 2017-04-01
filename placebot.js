@@ -1,4 +1,4 @@
-(function() {
+(function(exports) {
     'use strict';
     
     /* global r, localStorage */
@@ -362,7 +362,7 @@
                 }
             }
             else if (this.placeMode === PlaceBot.placeMode.FUNCTION) {
-                tile = this.tileGenerator(this);
+                tile = this.tileGenerator();
             }
             
             if (tile) {
@@ -464,4 +464,8 @@
     };
     
     new PlaceBot();
-})();
+})(
+    typeof unsafeWindow !== 'undefined' ? unsafeWindow :
+    typeof window       !== 'undefined' ? window       :
+    {}
+);
