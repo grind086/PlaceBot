@@ -159,7 +159,7 @@
         if (this.placeMode === PlaceBot.placeMode.ARRAY) {
             obj.fn = this.tileSelector.name;
         }
-        else if (this.placeMode === PlaceBot.placeMode.ARRAY) {
+        else if (this.placeMode === PlaceBot.placeMode.FUNCTION) {
             obj.fn = this._tileGeneratorFactory.toString();
         }
         
