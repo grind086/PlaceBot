@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        PlaceBot-full
-// @version     0.0.5
+// @version     0.0.6
 // @namespace   https://github.com/grind086/PlaceBot
 // @description A bot that automates drawing on reddit.com/r/place
 // @grant       unsafeWindow
@@ -412,7 +412,7 @@
      * @property {String} version - Attach the placebot version
      * @static
      */
-    PlaceBot.version = '0.0.5';
+    PlaceBot.version = '0.0.6';
     
     /**
      * @property {Enum} placeMode
