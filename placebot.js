@@ -4,6 +4,11 @@
     /* global r, localStorage */
     
     var place = r.place;
+    var api;
+    
+    r.placeModule('', function(require) {
+        api = require('api');
+    });
     
     /**
      * @class PlaceBot
@@ -34,14 +39,14 @@
          */
         this.lastDrawTime = 0;
         
-        // Start the draw timer
-        this.drawNext();
-        
         console.log([
             '------------',
           , 'PlaceBot ' + PlaceBot.version
           , '------------'
         ].join('\n'));
+        
+        this.load();
+        this._setTimer();
     };
     
     // Define getters
@@ -210,25 +215,42 @@
     };
     
     /**
+     * Sets the timer for the next available draw
+     * 
+     * @method _setTimer
+     */
+    PlaceBot.prototype._setTimer = function() {
+        clearTimeout(this.drawTimer); // Ensure we only have one timer running
+        
+        var time = Math.max(this.minTimer, this.cooldownRemaining);
+        this.drawTimer = setTimeout(this.drawNext.bind(this), time);
+        
+        console.log('Scheduled draw in %sms', time);
+    };
+    
+    /**
      * Draws the next tile (as chosen by this.tileSelector) if allowed, then sets
-     * a timer for the next available draw.
+     * a timer for the next available draw. Also performs a check to make sure
+     * the tile is not already the desired color.
      * 
      * @method drawNext
      */
     PlaceBot.prototype.drawNext = function() {
         if (this.canDraw && this.toPlace.length) {
             var tileIndex = this.tileSelector(this.toPlace);
+            var tile = this.toPlace.splice(tileIndex, 1)[0];
+            var self = this;
             
-            this.drawTile.apply(this, this.toPlace[tileIndex]);
-            this.toPlace.splice(tileIndex, 1);
+            api.getPixelInfo(tile[0], tile[1]).then(function(data) {
+                if (data.color !== tile[2]) {
+                    self.drawTile.apply(self, tile);
+                }
+                
+                self._setTimer();
+            });
         }
         
-        clearTimeout(this.drawTimer); // Ensure we only have one timer running
-        
-        var time = Math.max(this.minTimer, this.cooldownRemaining);
-        setTimeout(this.drawNext.bind(this), time);
-        
-        console.log('Scheduled draw in %sms', time);
+        self._setTimer();
     };
     
     /**
@@ -259,7 +281,7 @@
      * @static
      */
     PlaceBot.selector = {
-        // Top -> Down, Left -> Right
+        // Top -> Bottom, Left -> Right
         TopDown: function(tiles) {
             var index = -1,
                 minX = Infinity,
@@ -267,6 +289,23 @@
             
             tiles.forEach(function(tile, i) {
                 if (tile[1] < minY || (tile[1] === minY && tile[0] < minX)) {
+                    index = i;
+                    minX = tile[0];
+                    minY = tile[1];
+                }
+            });
+            
+            return index;
+        },
+        
+        // Bottom -> Top, Right -> Left
+        BottomUp: function(tiles) {
+            var index = -1,
+                minX = -1,
+                minY = -1;
+            
+            tiles.forEach(function(tile, i) {
+                if (tile[1] > minY || (tile[1] === minY && tile[0] > minX)) {
                     index = i;
                     minX = tile[0];
                     minY = tile[1];
