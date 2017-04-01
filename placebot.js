@@ -352,7 +352,7 @@
      * @method drawNext
      */
     PlaceBot.prototype.drawNext = function() {
-        if (this.canDraw && this.tiles.length) {
+        if (this.canDraw) {
             var tile;
             
             if (this.placeMode === PlaceBot.placeMode.ARRAY) {
