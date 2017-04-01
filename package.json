@@ -1,0 +1,27 @@
+{
+  "name": "placebot",
+  "version": "0.0.2",
+  "description": "A bot that automates drawing on reddit.com/r/place",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grind086/PlaceBot.git"
+  },
+  "author": "Rob Grindeland",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/grind086/PlaceBot/issues"
+  },
+  "homepage": "https://github.com/grind086/PlaceBot#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clone": "^1.0.0",
+    "gulp-merge": "^0.1.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.4",
+    "gulp-uglify": "^2.1.2"
+  },
+  "dependencies": {
+    "gulp-clean": "^0.3.2",
+    "gulp-concat": "^2.6.1"
+  }
+}
