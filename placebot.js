@@ -229,7 +229,6 @@
         
         var settings = Object.assign(this._settingsObject(), imported.data);
         
-        this.tileSelector = PlaceBot.selector[settings.tileSelector] || PlaceBot.selector.TopDown;
         this.minTimer = settings.minTimer;
     };
     
