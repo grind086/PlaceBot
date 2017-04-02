@@ -136,6 +136,23 @@
             return index;
         },
         
+        // Left -> Right, Top -> Bottom
+        LeftToRight: function(tiles) {
+            var index = -1,
+                minX = Infinity,
+                minY = Infinity;
+            
+            tiles.forEach(function(tile, i) {
+                if (tile[0] < minX || (tile[0] === minX && tile[1] < minY)) {
+                    index = i;
+                    minX = tile[0];
+                    minY = tile[1];
+                }
+            });
+            
+            return index;
+        },
+
         // Chooses any random tile
         Random: function(tiles) {
             return Math.floor(Math.random() * tiles.length);
