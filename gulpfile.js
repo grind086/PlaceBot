@@ -44,7 +44,8 @@ gulp.task('default', ['clean'], function() {
                 .pipe(concat('placebot.user.js'))
             ,
             merge(
-                    userscriptStream.pipe(clone()),
+                    userscriptStream.pipe(clone())
+                        .pipe(replace(/(\/\/ \@name[^\n]+)/, '$1-full')),
                     placebotUgly.pipe(clone()),
                     footerStream.pipe(clone())
                 )

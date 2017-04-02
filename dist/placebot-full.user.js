@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        PlaceBot
+// @name        PlaceBot-full
 // @version     0.0.7
 // @namespace   https://github.com/grind086/PlaceBot
 // @description A bot that automates drawing on reddit.com/r/place
