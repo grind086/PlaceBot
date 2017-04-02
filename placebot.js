@@ -157,7 +157,13 @@
         };
         
         if (this.placeMode === PlaceBot.placeMode.ARRAY) {
-            obj.fn = this.tileSelector.name;
+            var name = this.tileSelector.name;
+            
+            if (PlaceBot.selector.hasOwnProperty(this.tileSelector.name)) {
+                obj.fn = name;
+            } else {
+                obj.fn = this.tileSelector.toString();
+            }
         }
         else if (this.placeMode === PlaceBot.placeMode.FUNCTION) {
             obj.fn = this._tileGeneratorFactory.toString();
@@ -368,13 +374,19 @@
                 api.getPixelInfo(tile[0], tile[1]).then(function(data) {
                     if (data.color !== tile[2]) {
                         this.drawTile.apply(this, tile);
+                    } else {
+                        console.log('Redundant draw. Skipping.');
                     }
                     
                     this._setTimer();
                 }.bind(this));
                 
                 this.save();
+            } else {
+                console.log('No tile provided.');
             }
+        } else {
+            console.log('Drawing not allowed. Rescheduling.');
         }
         
         this._setTimer();
