@@ -86,7 +86,7 @@
      * @property {String} version - Attach the placebot version
      * @static
      */
-    PlaceBot.version = '0.0.7';
+    PlaceBot.version = '0.0.8';
     
     /**
      * @property {Enum} placeMode
@@ -509,6 +509,8 @@
                 }.bind(this));
                 
                 this.save();
+                
+                return;
             } else {
                 console.log('No tile provided.');
             }

@@ -50,6 +50,8 @@
                 }.bind(this));
                 
                 this.save();
+                
+                return;
             } else {
                 console.log('No tile provided.');
             }
