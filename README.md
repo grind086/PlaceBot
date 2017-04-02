@@ -109,7 +109,8 @@ placeBot.setTileFunction(PlaceBot.placeMode.FUNCTION, pinkLine);
 
 Basically this function sets up an initial state, then reverts to that state after
 every successful draw. Note that this function is called repeatedly (on `minTimer`)
-if drawing isn't successful - usually due to a redundant draw.
+if drawing isn't successful - usually due to a redundant draw. You can see its
+progress [place/#x=456&y=852](https://www.reddit.com/r/place/#x=456&y=852).
 
 ## Common Issues
 

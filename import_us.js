@@ -9,5 +9,3 @@
 // ==/UserScript==
 
 (function() {
-$$import
-})();

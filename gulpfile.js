@@ -1,6 +1,7 @@
-const fs = require('fs');
 const gulp = require('gulp');
 const clean = require('gulp-clean');
+const clone = require('gulp-clone');
+const concat = require('gulp-concat');
 const merge = require('gulp-merge');
 const rename = require('gulp-rename');
 const replace = require('gulp-replace');
@@ -14,29 +15,45 @@ gulp.task('clean', function() {
 });
 
 gulp.task('default', ['clean'], function() {
-    var importScript = fs.readFileSync('./import.js', 'utf8');
-    var botScript = fs.readFileSync('./placebot.js', 'utf8');
+    var placebotStream = gulp.src([
+        './src/placebot.js',
+        './src/settings.js',
+        './src/draw.js'
+    ]).pipe(concat('placebot.js'));
+    
+    var importStream = gulp.src('./import.js');
+    var footerStream = gulp.src('./import_footer.js');
+    var bookmarkletStream = gulp.src('./import_bm.js');
+    var userscriptStream = gulp.src('./import_us.js');
+    
+    var placebotUgly = placebotStream.pipe(clone()).pipe(uglify());
     
     return merge(
-            merge (
-                    gulp.src('./import_bm.js')
-                        .pipe(rename('bookmarklet.js'))
-                    ,
-                    gulp.src('./import_us.js')
-                        .pipe(rename('placebot.user.js'))
+            merge(
+                    bookmarkletStream.pipe(clone()),
+                    importStream.pipe(clone()),
+                    footerStream.pipe(clone())
                 )
-                .pipe(replace('$$import', importScript))
+                .pipe(concat('bookmarklet.js'))
             ,
-            gulp.src('./import_us.js')
-                .pipe(rename('placebot-full.user.js'))
-                .pipe(replace(/(\/\/ \@name[^\n]+)/, '$1-full'))
-                .pipe(replace('(function() {\n', ''))
-                .pipe(replace('\n})();', ''))
-                .pipe(replace('$$import', botScript))
+            merge(
+                    userscriptStream.pipe(clone()),
+                    importStream.pipe(clone()),
+                    footerStream.pipe(clone())
+                )
+                .pipe(concat('placebot.user.js'))
             ,
-            gulp.src('./placebot.js')
-                .pipe(uglify())
+            merge(
+                    userscriptStream.pipe(clone()),
+                    placebotUgly.pipe(clone()),
+                    footerStream.pipe(clone())
+                )
+                .pipe(concat('placebot-full.user.js'))
+            ,
+            placebotUgly.pipe(clone())
                 .pipe(rename({ suffix: '.min' }))
+            ,
+            placebotStream.pipe(clone())
         )
         .pipe(replace('$$version', pkg.version))
         .pipe(replace('$$description', pkg.description))

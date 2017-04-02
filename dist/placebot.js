@@ -1,14 +1,5 @@
-(function(exports) {
+(function(global) {
     'use strict';
-    
-    /* global r, localStorage */
-    
-    var place = r.place;
-    var api;
-    
-    r.placeModule('', function(require) {
-        api = require('api');
-    });
     
     /**
      * @class PlaceBot
@@ -79,7 +70,7 @@
          * @property {Number} nextDrawTime - The time that the next draw is allowed
          */
         nextDrawTime: {
-            get: function() { return place.cooldownEndTime; }
+            get: function() { return PlaceBot.place.cooldownEndTime; }
         },
         
         /**
@@ -90,6 +81,115 @@
                 && this.lastDrawTime !== this.nextDrawTime; }
         }
     });
+    
+    /**
+     * @property {String} version - Attach the placebot version
+     * @static
+     */
+    PlaceBot.version = '0.0.7';
+    
+    /**
+     * @property {Enum} placeMode
+     * @static
+     */
+    PlaceBot.placeMode = { 
+        ARRAY    : 0,
+        FUNCTION : 1
+    };
+    
+    /**
+     * @property {Object} selector - Collection of tile selection functions
+     * @static
+     */
+    PlaceBot.selector = {
+        // Top -> Bottom, Left -> Right
+        TopDown: function(tiles) {
+            var index = -1,
+                minX = Infinity,
+                minY = Infinity;
+            
+            tiles.forEach(function(tile, i) {
+                if (tile[1] < minY || (tile[1] === minY && tile[0] < minX)) {
+                    index = i;
+                    minX = tile[0];
+                    minY = tile[1];
+                }
+            });
+            
+            return index;
+        },
+        
+        // Bottom -> Top, Right -> Left
+        BottomUp: function(tiles) {
+            var index = -1,
+                minX = -1,
+                minY = -1;
+            
+            tiles.forEach(function(tile, i) {
+                if (tile[1] > minY || (tile[1] === minY && tile[0] > minX)) {
+                    index = i;
+                    minX = tile[0];
+                    minY = tile[1];
+                }
+            });
+            
+            return index;
+        },
+        
+        // Chooses any random tile
+        Random: function(tiles) {
+            return Math.floor(Math.random() * tiles.length);
+        },
+        
+        // Keeps the order that tiles were added
+        DrawOrder: function(tiles) {
+            return 0;
+        }
+    };
+    
+    /**
+     * @property {object} place - Reference to reddit's place object
+     * @static
+     */
+    PlaceBot.place = global.r.place;
+    
+    /**
+     * @property {object} placeModules - References to any of reddit's place modules we might need
+     * @static
+     */
+    PlaceBot.placeModules = {};
+    
+    // Import place modules
+    var importModules = ['api'];
+    global.r.placeModule('', function(require) {
+        importModules.forEach(function(name) {
+            PlaceBot.placeModules[name] = require(name);
+        });
+    });
+    
+    global.PlaceBot = PlaceBot;
+    
+    // Do this async so we finish loading the prototype
+    setTimeout(function() {
+        global.placeBot = new PlaceBot();
+    }, 0);
+})(
+    typeof unsafeWindow !== 'undefined' ? unsafeWindow :
+    typeof window       !== 'undefined' ? window       :
+    {}
+);
+
+(function(global) {
+    'use strict';
+    
+    var PlaceBot = global.PlaceBot;
+    
+    var localStorage = global.hasOwnProperty('localStorage') 
+        ? global.localStorage
+        : { 
+            getItem: function() { return null; }, 
+            setItem: function() { } 
+        };
     
     /**
      * Takes either JSON or an object, and returns an object
@@ -193,6 +293,27 @@
     };
     
     /**
+     * Returns JSON of the current settings
+     * 
+     * @method exportSettings
+     */
+    PlaceBot.prototype.exportSettings = function() {
+        return JSON.stringify(this._settingsObject());
+    };
+    
+    /**
+     * Returns JSON of the current settings and tiles
+     * 
+     * @method exportBot
+     */
+    PlaceBot.prototype.exportBot = function() {
+        return JSON.stringify({
+            settings: this._settingsObject(),
+            tiles: this.tiles
+        });
+    };
+    
+    /**
      * Imports tiles as JSON or object
      * 
      * @method importTiles
@@ -212,15 +333,6 @@
     };
     
     /**
-     * Returns JSON of the current settings
-     * 
-     * @method exportSettings
-     */
-    PlaceBot.prototype.exportSettings = function() {
-        return JSON.stringify(this._settingsObject());
-    };
-    
-    /**
      * Imports settings as JSON or object
      * 
      * @method importSettings
@@ -236,18 +348,6 @@
         var settings = Object.assign(this._settingsObject(), imported.data);
         
         this.minTimer = settings.minTimer;
-    };
-    
-    /**
-     * Returns JSON of the current settings and tiles
-     * 
-     * @method exportBot
-     */
-    PlaceBot.prototype.exportBot = function() {
-        return JSON.stringify({
-            settings: this._settingsObject(),
-            tiles: this.tiles
-        });
     };
     
     /**
@@ -334,6 +434,16 @@
                 this.setTileFunction(PlaceBot.placeMode.ARRAY, 'TopDown');
         }
     };
+})(
+    typeof unsafeWindow !== 'undefined' ? unsafeWindow :
+    typeof window       !== 'undefined' ? window       :
+    {}
+);
+
+(function(global) {
+    'use strict';
+    
+    var PlaceBot = global.PlaceBot;
     
     /**
      * Sets the timer for the next available draw
@@ -371,7 +481,7 @@
             }
             
             if (tile) {
-                api.getPixelInfo(tile[0], tile[1]).then(function(data) {
+                PlaceBot.placeModules.api.getPixelInfo(tile[0], tile[1]).then(function(data) {
                     if (data.color !== tile[2]) {
                         this.drawTile.apply(this, tile);
                     } else {
@@ -402,80 +512,12 @@
         if (this.canDraw) {
             this.lastDrawTime = this.nextDrawTime;
             
-            place.setColor(color);
-            place.drawTile(x, y);
+            PlaceBot.place.setColor(color);
+            PlaceBot.place.drawTile(x, y);
             
-            console.log('Drawing %s at (%s, %s)', place.palette[color], x, y);
+            console.log('Drawing %s at (%s, %s)', PlaceBot.place.palette[color], x, y);
         }
     };
-    
-    /**
-     * @property {String} version - Attach the placebot version
-     * @static
-     */
-    PlaceBot.version = '$$version';
-    
-    /**
-     * @property {Enum} placeMode
-     * @static
-     */
-    PlaceBot.placeMode = { 
-        ARRAY    : 0,
-        FUNCTION : 1
-    };
-    
-    /**
-     * @property {Object} selector - Collection of tile selection functions
-     * @static
-     */
-    PlaceBot.selector = {
-        // Top -> Bottom, Left -> Right
-        TopDown: function(tiles) {
-            var index = -1,
-                minX = Infinity,
-                minY = Infinity;
-            
-            tiles.forEach(function(tile, i) {
-                if (tile[1] < minY || (tile[1] === minY && tile[0] < minX)) {
-                    index = i;
-                    minX = tile[0];
-                    minY = tile[1];
-                }
-            });
-            
-            return index;
-        },
-        
-        // Bottom -> Top, Right -> Left
-        BottomUp: function(tiles) {
-            var index = -1,
-                minX = -1,
-                minY = -1;
-            
-            tiles.forEach(function(tile, i) {
-                if (tile[1] > minY || (tile[1] === minY && tile[0] > minX)) {
-                    index = i;
-                    minX = tile[0];
-                    minY = tile[1];
-                }
-            });
-            
-            return index;
-        },
-        
-        // Chooses any random tile
-        Random: function(tiles) {
-            return Math.floor(Math.random() * tiles.length);
-        },
-        
-        // Keeps the order that tiles were added
-        DrawOrder: function(tiles) {
-            return 0;
-        }
-    };
-    
-    exports.PlaceBot = PlaceBot;
-    exports.placeBot = new PlaceBot();
 })(
     typeof unsafeWindow !== 'undefined' ? unsafeWindow :
     typeof window       !== 'undefined' ? window       :
