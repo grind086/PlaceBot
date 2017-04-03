@@ -47,6 +47,9 @@
                     }
                     
                     this._setTimer();
+                }.bind(this),function(reason) {
+                    console.log("API failure.");
+                    this._setTimer();
                 }.bind(this));
                 
                 this.save();
