@@ -86,7 +86,7 @@
      * @property {String} version - Attach the placebot version
      * @static
      */
-    PlaceBot.version = '0.0.8';
+    PlaceBot.version = '0.0.9';
     
     /**
      * @property {Enum} placeMode
@@ -505,6 +505,9 @@
                         console.log('Redundant draw. Skipping.');
                     }
                     
+                    this._setTimer();
+                }.bind(this),function(reason) {
+                    console.log("API failure.");
                     this._setTimer();
                 }.bind(this));
                 
