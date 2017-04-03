@@ -4,8 +4,8 @@
 // @namespace   https://github.com/grind086/PlaceBot
 // @description A bot that automates drawing on reddit.com/r/place
 // @grant       unsafeWindow
-// @include     http://www.reddit.com/r/place/
-// @include     https://www.reddit.com/r/place/
+// @match        https://www.reddit.com/place*
+// @match        https://www.reddit.com/r/place*
 // ==/UserScript==
 
 (function() {
